@@ -5,8 +5,8 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "mono:pixelsize=16:antialias=true:autohint=true";
-static char *font2[] = { "Inconsolata for Powerline:pixelsize=16:antialias=true:autohint=true" };
+static char *font = "FuraCode Nerd Font:pixelsize=14:antialias=true:autohint=true";
+static char *font2[] = {"FontAwesome5Free:pixelsize=14:antialias=true:autohint=true", "FontAwesome5Brands:pixelsize=14:antialias=true:autohint=true", "Symbola:pixelsize=14:antialias=true:autohint=true"};
 static int borderpx = 2;
 
 /*
@@ -17,7 +17,7 @@ static int borderpx = 2;
  * 4: value of shell in /etc/passwd
  * 5: value of shell in config.h
  */
-static char *shell = "/bin/sh";
+static char *shell = "/bin/zsh";
 char *utmp = NULL;
 char *stty_args = "stty raw pass8 nl -echo -iexten -cstopb 38400";
 
@@ -43,8 +43,8 @@ static unsigned int tripleclicktimeout = 600;
 int allowaltscreen = 1;
 
 /* frames per second st should at maximum draw to the screen */
-static unsigned int xfps = 120;
-static unsigned int actionfps = 30;
+static unsigned int xfps = 300;
+static unsigned int actionfps = 120;
 
 /*
  * blinking timeout (set to 0 to disable blinking) for the terminal blinking
@@ -84,33 +84,43 @@ char *termname = "st-256color";
 unsigned int tabspaces = 8;
 
 /* bg opacity */
-float alpha = 0.92;
+float alpha = 0.80;
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
-	"#282828", /* hard contrast: #1d2021 / soft contrast: #32302f */
-	"#cc241d",
-	"#98971a",
-	"#d79921",
-	"#458588",
-	"#b16286",
-	"#689d6a",
-	"#a89984",
-	"#928374",
-	"#fb4934",
-	"#b8bb26",
-	"#fabd2f",
-	"#83a598",
-	"#d3869b",
-	"#8ec07c",
-	"#ebdbb2",
-	[255] = 0,
-	/* more colors can be added after 255 to use with DefaultXX */
-	"#282828",   /* 256 -> bg */
-	"#ebdbb2",   /* 257 -> fg */
-	"#add8e6", /* 258 -> cursor */
+
+  /* 8 normal colors */
+  [0] = "#303030", /* black   */
+  [1] = "#c03000", /* red     */
+  [2] = "#b1d631", /* green   */
+  [3] = "#fecf35", /* yellow  */
+  [4] = "#426870", /* blue    */
+  [5] = "#6d506d", /* magenta */
+  [6] = "#4bb5c1", /* cyan    */
+  [7] = "#e2e2e5", /* white   */
+
+  /* 8 bright colors */
+  [8]  = "#5f5f5f", /* black   */
+  [9]  = "#ff3a78", /* red     */
+  [10] = "#a6cd07", /* green   */
+  [11] = "#b5c865", /* yellow  */
+  [12] = "#4a7781", /* blue    */
+  [13] = "#ff3b77", /* magenta */
+  [14] = "#4bb5c1", /* cyan    */
+  [15] = "#e2e2e5", /* white   */
+
+  /* special colors */
+  [256] = "#000000", /* background */
+  [257] = "#ffffff", /* foreground */
 };
 
+/*
+ * Colors used, when the specific fg == defaultfg. So in reverse mode this
+ * will reverse too. Another logic would only make the simple feature too
+ * complex.
+ */
+static unsigned int defaultitalic = 7;
+static unsigned int defaultunderline = 7;
 
 /*
  * Default colors (colorname index)
@@ -118,7 +128,7 @@ static const char *colorname[] = {
  */
 unsigned int defaultfg = 257;
 unsigned int defaultbg = 256;
-static unsigned int defaultcs = 258;
+static unsigned int defaultcs = 7;
 static unsigned int defaultrcs = 0;
 
 /*
@@ -212,15 +222,15 @@ MouseKey mkeys[] = {
 	{ Button5,              TERMMOD,        zoom,           {.f =  -1} },
 };
 
-static char *openurlcmd[] = { "/bin/sh", "-c",
-    "sed 's/.*│//g' | tr -d '\n' | grep -aEo '(((http|https)://|www\\.)[a-zA-Z0-9.]*[:]?[a-zA-Z0-9./&%?#=_-]*)|((magnet:\\?xt=urn:btih:)[a-zA-Z0-9]*)'| uniq | sed 's/^www./http:\\/\\/www\\./g' | dmenu -i -p 'Follow which url?' -l 10 | xargs -r xdg-open",
+static char *openurlcmd[] = { "/bin/zsh", "-c",
+    "sed 's/.*│//g' | tr -d '\n' | grep -aEo '(((http|https)://|www\\.)[a-zA-Z0-9.]*[:]?[a-zA-Z0-9./&%?=_-]*)|((magnet:\\?xt=urn:btih:)[a-zA-Z0-9]*)'| uniq | sed 's/^www./http:\\/\\/www\\./g' | dmenu -i -p 'Follow which url?' -l 10 | xargs -r xdg-open",
     "externalpipe", NULL };
 
-static char *copyurlcmd[] = { "/bin/sh", "-c",
-    "sed 's/.*│//g' | tr -d '\n' | grep -aEo '(((http|https)://|www\\.)[a-zA-Z0-9.]*[:]?[a-zA-Z0-9./&%?#=_-]*)|((magnet:\\?xt=urn:btih:)[a-zA-Z0-9]*)' | uniq | sed 's/^www./http:\\/\\/www\\./g' | dmenu -i -p 'Copy which url?' -l 10 | tr -d '\n' | xclip -selection clipboard",
+static char *copyurlcmd[] = { "/bin/zsh", "-c",
+    "sed 's/.*│//g' | tr -d '\n' | grep -aEo '(((http|https)://|www\\.)[a-zA-Z0-9.]*[:]?[a-zA-Z0-9./&%?=_-]*)|((magnet:\\?xt=urn:btih:)[a-zA-Z0-9]*)' | uniq | sed 's/^www./http:\\/\\/www\\./g' | dmenu -i -p 'Copy which url?' -l 10 | tr -d '\n' | xclip -selection clipboard",
     "externalpipe", NULL };
 
-static char *copyoutput[] = { "/bin/sh", "-c", "st-copyout", "externalpipe", NULL };
+static char *copyoutput[] = { "/bin/zsh", "-c", "st-copyout", "externalpipe", NULL };
 
 static Shortcut shortcuts[] = {
 	/* mask                 keysym          function        argument */
